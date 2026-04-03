@@ -103,16 +103,18 @@ export function useMentions(channelId: string | null) {
         const fallbackName =
           managedAgentNamesByPubkey.get(member.pubkey.toLowerCase()) ??
           member.pubkey.slice(0, 8);
+        const label = member.displayName ?? fallbackName;
 
         return {
           member,
-          label: member.displayName ?? fallbackName,
+          label,
+          lowerLabel: label.toLowerCase(),
+          lowerPubkey: member.pubkey.toLowerCase(),
         };
       })
       .filter(
-        ({ label, member }) =>
-          label.toLowerCase().includes(lowerQuery) ||
-          member.pubkey.toLowerCase().includes(lowerQuery),
+        ({ lowerLabel, lowerPubkey }) =>
+          lowerLabel.includes(lowerQuery) || lowerPubkey.includes(lowerQuery),
       )
       .slice(0, 8)
       .map(({ member, label }) => ({

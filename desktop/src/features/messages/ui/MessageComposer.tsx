@@ -16,6 +16,27 @@ import {
 } from "./MentionAutocomplete";
 import { MessageComposerToolbar } from "./MessageComposerToolbar";
 
+function debounce<T extends (...args: unknown[]) => void>(
+  fn: T,
+  ms: number,
+): T & { cancel(): void } {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const debounced = (...args: Parameters<T>) => {
+    if (timer !== null) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      fn(...args);
+    }, ms);
+  };
+  debounced.cancel = () => {
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
+  return debounced as T & { cancel(): void };
+}
+
 type MessageComposerProps = {
   channelId?: string | null;
   channelName: string;
@@ -77,6 +98,23 @@ export function MessageComposer({
   const notifyTyping = useTypingBroadcast(channelId);
 
   const media = useMediaUpload(setContent);
+
+  const debouncedMentionUpdate = React.useMemo(
+    () => debounce(mentions.updateMentionQuery, 150),
+    [mentions.updateMentionQuery],
+  );
+
+  const debouncedChannelUpdate = React.useMemo(
+    () => debounce(channelLinks.updateChannelQuery, 150),
+    [channelLinks.updateChannelQuery],
+  );
+
+  React.useEffect(() => {
+    return () => {
+      debouncedMentionUpdate.cancel();
+      debouncedChannelUpdate.cancel();
+    };
+  }, [debouncedMentionUpdate, debouncedChannelUpdate]);
 
   // Stable refs for values read inside callbacks that should not cause
   // callback identity changes when they update.
@@ -349,16 +387,16 @@ export function MessageComposer({
       const cursorPos = event.target.selectionStart;
       setContent(nextContent);
       updateDraftSelection(event.target);
-      mentions.updateMentionQuery(nextContent, cursorPos);
-      channelLinks.updateChannelQuery(nextContent, cursorPos);
+      debouncedMentionUpdate(nextContent, cursorPos);
+      debouncedChannelUpdate(nextContent, cursorPos);
       if (nextContent.trim().length > 0) {
         notifyTyping();
       }
     },
     [
       updateDraftSelection,
-      mentions.updateMentionQuery,
-      channelLinks.updateChannelQuery,
+      debouncedMentionUpdate,
+      debouncedChannelUpdate,
       notifyTyping,
     ],
   );

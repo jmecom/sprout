@@ -55,12 +55,20 @@ export function ComposerMentionOverlay({
     () => buildOverlayPattern(mentionNames),
     [mentionNames],
   );
-  const segments = parseSegments(content, pattern);
+  const segments = React.useMemo(
+    () => parseSegments(content, pattern),
+    [content, pattern],
+  );
+
+  const overlayStyle = React.useMemo(
+    () => ({ transform: `translateY(-${scrollTop}px)` }),
+    [scrollTop],
+  );
 
   return (
     <div
       className="whitespace-pre-wrap break-words px-0 py-0 text-sm leading-6"
-      style={{ transform: `translateY(-${scrollTop}px)` }}
+      style={overlayStyle}
     >
       {
         segments.reduce<{ offset: number; nodes: React.ReactNode[] }>(
