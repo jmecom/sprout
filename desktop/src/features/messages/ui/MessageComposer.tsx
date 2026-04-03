@@ -307,6 +307,8 @@ export function MessageComposer({
       const savedContent = trimmed;
       setContent("");
       draftSelectionRef.current = { end: 0, start: 0 };
+      debouncedMentionUpdate.cancel();
+      debouncedChannelUpdate.cancel();
       mentions.clearMentions();
       channelLinks.clearChannels();
       setIsEmojiPickerOpen(false);
@@ -351,6 +353,8 @@ export function MessageComposer({
     setContent("");
     draftSelectionRef.current = { end: 0, start: 0 };
     media.setPendingImeta([]);
+    debouncedMentionUpdate.cancel();
+    debouncedChannelUpdate.cancel();
     mentions.clearMentions();
     channelLinks.clearChannels();
     setIsEmojiPickerOpen(false);
@@ -366,6 +370,8 @@ export function MessageComposer({
       media.setPendingImeta(savedImeta);
     }
   }, [
+    debouncedMentionUpdate,
+    debouncedChannelUpdate,
     drafts.clearDraft,
     media.pendingImetaRef,
     media.setPendingImeta,
