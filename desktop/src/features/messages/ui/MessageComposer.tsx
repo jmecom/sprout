@@ -16,7 +16,8 @@ import {
 } from "./MentionAutocomplete";
 import { MessageComposerToolbar } from "./MessageComposerToolbar";
 
-function debounce<T extends (...args: unknown[]) => void>(
+// biome-ignore lint/suspicious/noExplicitAny: generic debounce requires flexible argument types
+function debounce<T extends (...args: any[]) => void>(
   fn: T,
   ms: number,
 ): T & { cancel(): void } {
