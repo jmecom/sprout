@@ -172,6 +172,8 @@ export function MessageComposer({
     media.setUploadState({ status: "idle" });
     setIsEmojiPickerOpen(false);
     setComposerScrollTop(0);
+    debouncedMentionUpdate.cancel();
+    debouncedChannelUpdate.cancel();
     mentions.clearMentions();
     channelLinks.clearChannels();
     lineHeightRef.current = null;
@@ -179,6 +181,7 @@ export function MessageComposer({
 
   const applyMentionInsert = React.useCallback(
     (suggestion: MentionSuggestion) => {
+      debouncedMentionUpdate.cancel();
       const textarea = textareaRef.current;
       const currentContent = contentRef.current;
       const result = mentions.insertMention(
@@ -193,11 +196,12 @@ export function MessageComposer({
       pendingSelectionRef.current = result.nextCursor;
       setContent(result.nextContent);
     },
-    [mentions.insertMention],
+    [debouncedMentionUpdate, mentions.insertMention],
   );
 
   const applyChannelInsert = React.useCallback(
     (suggestion: ChannelSuggestion) => {
+      debouncedChannelUpdate.cancel();
       const textarea = textareaRef.current;
       const currentContent = contentRef.current;
       const result = channelLinks.insertChannel(
@@ -212,7 +216,7 @@ export function MessageComposer({
       pendingSelectionRef.current = result.nextCursor;
       setContent(result.nextContent);
     },
-    [channelLinks.insertChannel],
+    [debouncedChannelUpdate, channelLinks.insertChannel],
   );
 
   const updateDraftSelection = React.useCallback(
@@ -245,9 +249,10 @@ export function MessageComposer({
       pendingSelectionRef.current = nextCursor;
       setContent(nextContent);
       setIsEmojiPickerOpen(false);
+      debouncedMentionUpdate.cancel();
       mentions.clearMentions();
     },
-    [mentions.clearMentions],
+    [debouncedMentionUpdate, mentions.clearMentions],
   );
 
   const openMentionPicker = React.useCallback(() => {
