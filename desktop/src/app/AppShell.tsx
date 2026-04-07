@@ -121,6 +121,10 @@ export function AppShell() {
     () => channels.filter((channel) => channel.isMember),
     [channels],
   );
+  const sidebarChannels = React.useMemo(
+    () => memberChannels.filter((channel) => channel.archivedAt === null),
+    [memberChannels],
+  );
   const availableChannelIds = React.useMemo(
     () => new Set(channels.map((channel) => channel.id)),
     [channels],
@@ -434,7 +438,7 @@ export function AppShell() {
       <SidebarProvider className="h-dvh overflow-hidden overscroll-none">
         <SidebarTrigger className="fixed left-[80px] top-[8px] z-50 h-6 w-6 text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground" />
         <AppSidebar
-          channels={memberChannels}
+          channels={sidebarChannels}
           currentPubkey={identityQuery.data?.pubkey}
           errorMessage={
             channelsQuery.error instanceof Error
